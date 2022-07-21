@@ -16,7 +16,6 @@ builder.Services
 
 var app = builder.Build();
 
-
 // passing HttpClient object as input parameter to delegate handler
 app.MapGet("/coin/healthcheck", async (HttpClient http) =>
 {
@@ -38,7 +37,6 @@ app.MapGet("/coin/healthcheck", async (HttpClient http) =>
 app.MapGet("/coin/trending", async (HttpClient http) =>
 {
 
-    // return HttpResponseMessage
     var res = await http.GetAsync("search/trending");
 
     if (!res.IsSuccessStatusCode)
@@ -67,7 +65,6 @@ app.MapGet("/coin/historic/{coin}/{date}", async (string coin, string date, Http
         return Results.BadRequest("Provide correct dateformat: dd-mm-yyyy");
     }
 
-    // return HttpResponseMessage
     var res = await http.GetAsync($"coins/{coin}/history?date={date}&localization=false");
 
     if (!res.IsSuccessStatusCode)
@@ -84,10 +81,30 @@ app.MapGet("/coin/historic/{coin}/{date}", async (string coin, string date, Http
 });
 
 
+// get current price in usd, eur from coin (e.g. bitcoin)
+app.MapGet("/coin/currentprice/{coin}", async (string coin, HttpClient http) =>
+{
+    // coin = lowercase
+    coin = coin.ToLower();
 
-// get current data form coin
-app.MapGet("/coin/current/{coin}", (string coin) => {
-    return Results.Ok(coin);
+    var res = await http.GetAsync($"simple/price?ids={coin}&vs_currencies=usd%2Ceur");
+
+    if (!res.IsSuccessStatusCode)
+    {
+        return Results.NotFound();
+    }
+
+    var json = await res.Content.ReadAsStringAsync();
+    var responseObject = JsonConvert.DeserializeObject<CurrentCoin>(json);
+
+    if (responseObject.currentCoin == null)
+    {
+        return Results.NotFound("Coin not found. Please provide a correct coin e.g. bitcoin.");
+    }
+
+    return Results.Ok(responseObject);
+
+
 });
 
 app.Run();
