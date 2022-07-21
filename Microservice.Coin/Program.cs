@@ -75,11 +75,10 @@ app.MapGet("/coin/historic/{coin}/{date}", async (string coin, string date, Http
         return Results.NotFound();
     }
 
-    // TO DO find error here
     var json = await res.Content.ReadAsStringAsync();
     var responseObject = JsonConvert.DeserializeObject<HistoricalData>(json);
     
-    return Results.Ok("test");
+    return Results.Ok(responseObject);
 
 
 });

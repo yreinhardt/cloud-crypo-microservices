@@ -26,7 +26,7 @@ public class CurrentPrice
     public double bhd { get; set; }
     public double bmd { get; set; }
     public double brl { get; set; }
-    public int btc { get; set; }
+    public double btc { get; set; }
     public double cad { get; set; }
     public double chf { get; set; }
     public double clp { get; set; }
@@ -70,9 +70,9 @@ public class CurrentPrice
     public double xau { get; set; }
     public double xdr { get; set; }
     public double zar { get; set; }
-    public int bits { get; set; }
+    public double bits { get; set; }
     public double link { get; set; }
-    public int sats { get; set; }
+    public double sats { get; set; }
 }
 
 public class DeveloperData
@@ -104,7 +104,7 @@ public class MarketCap
     public double bhd { get; set; }
     public double bmd { get; set; }
     public double brl { get; set; }
-    public int btc { get; set; }
+    public double btc { get; set; }
     public double cad { get; set; }
     public double chf { get; set; }
     public double clp { get; set; }
@@ -116,11 +116,11 @@ public class MarketCap
     public double gbp { get; set; }
     public double hkd { get; set; }
     public double huf { get; set; }
-    public long idr { get; set; }
+    public double idr { get; set; }
     public double ils { get; set; }
     public double inr { get; set; }
     public double jpy { get; set; }
-    public long krw { get; set; }
+    public double krw { get; set; }
     public double kwd { get; set; }
     public double lkr { get; set; }
     public double ltc { get; set; }
@@ -143,14 +143,14 @@ public class MarketCap
     public double uah { get; set; }
     public double usd { get; set; }
     public double vef { get; set; }
-    public long vnd { get; set; }
+    public double vnd { get; set; }
     public double xag { get; set; }
     public double xau { get; set; }
     public double xdr { get; set; }
     public double zar { get; set; }
-    public long bits { get; set; }
+    public double bits { get; set; }
     public double link { get; set; }
-    public long sats { get; set; }
+    public double sats { get; set; }
 }
 
 public class MarketData
