@@ -16,7 +16,7 @@ public class CommunityData
     public string reddit_accounts_active_48h { get; set; }
 }
 
-public class CurrentPrice
+public class CurrentPriceHist
 {
     public double aed { get; set; }
     public double ars { get; set; }
@@ -88,13 +88,13 @@ public class DeveloperData
     public int commit_count_4_weeks { get; set; }
 }
 
-public class Image
+public class ImageHist
 {
     public string thumb { get; set; }
     public string small { get; set; }
 }
 
-public class MarketCap
+public class MarketCapHist
 {
     public double aed { get; set; }
     public double ars { get; set; }
@@ -153,11 +153,11 @@ public class MarketCap
     public double sats { get; set; }
 }
 
-public class MarketData
+public class MarketDataHist
 {
-    public CurrentPrice current_price { get; set; }
-    public MarketCap market_cap { get; set; }
-    public TotalVolume total_volume { get; set; }
+    public CurrentPriceHist current_price { get; set; }
+    public MarketCapHist market_cap { get; set; }
+    public TotalVolumeHist total_volume { get; set; }
 }
 
 public class PublicInterestStats
@@ -171,14 +171,14 @@ public class HistoricalData
     public string id { get; set; }
     public string symbol { get; set; }
     public string name { get; set; }
-    public Image image { get; set; }
-    public MarketData market_data { get; set; }
+    public ImageHist image { get; set; }
+    public MarketDataHist market_data { get; set; }
     public CommunityData community_data { get; set; }
     public DeveloperData developer_data { get; set; }
     public PublicInterestStats public_interest_stats { get; set; }
 }
 
-public class TotalVolume
+public class TotalVolumeHist
 {
     public double aed { get; set; }
     public double ars { get; set; }

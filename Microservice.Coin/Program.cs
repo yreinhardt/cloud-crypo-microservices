@@ -87,7 +87,7 @@ app.MapGet("/coin/currentprice/{coin}", async (string coin, HttpClient http) =>
     // coin = lowercase
     coin = coin.ToLower();
 
-    var res = await http.GetAsync($"simple/price?ids={coin}&vs_currencies=usd%2Ceur");
+    var res = await http.GetAsync($"coins/{coin}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false");
 
     if (!res.IsSuccessStatusCode)
     {
@@ -96,11 +96,6 @@ app.MapGet("/coin/currentprice/{coin}", async (string coin, HttpClient http) =>
 
     var json = await res.Content.ReadAsStringAsync();
     var responseObject = JsonConvert.DeserializeObject<CurrentCoin>(json);
-
-    if (responseObject.currentCoin == null)
-    {
-        return Results.NotFound("Coin not found. Please provide a correct coin e.g. bitcoin.");
-    }
 
     return Results.Ok(responseObject);
 
