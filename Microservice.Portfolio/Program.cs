@@ -24,6 +24,12 @@ GET: getPortfolio/{portfolioId}
 
 app.MapPost("/portfolio/createPortfolio", async (Portfolio folio, PortfolioDbContext db) =>
 {
+    
+    if (folio.Assets.Count % 2 != 0)
+    {
+        return Results.BadRequest("Provide correct Assetinformation. Each Asset must have a Name and Price");
+    }
+
     folio.CreatedOn = folio.CreatedOn.ToUniversalTime();
 
     await db.AddAsync(folio);
@@ -33,17 +39,13 @@ app.MapPost("/portfolio/createPortfolio", async (Portfolio folio, PortfolioDbCon
 });
 
 
-app.MapGet("/portfolio/getPortfolio/{portfolioName}", async (string portfolioName, PortfolioDbContext db) =>
+app.MapGet("/portfolio/getPortfolio/{portfolioName}/{userId}", async (string portfolioName, Guid userId, PortfolioDbContext db) =>
 {
-    // TODO: Add filter where userid matches current login user
+    // filter for match between userid and portfolioname
     var results = await db.Portfolio
-        .Where(x => x.PortfolioName == portfolioName)
+        .Where(x => (x.PortfolioName == portfolioName) && (x.UserId == userId))
         .ToListAsync();
 
-    if (results == null)
-    {
-        return Results.BadRequest("Provide correct Portfolioname");
-    }
     return Results.Ok(results);
 });
 
