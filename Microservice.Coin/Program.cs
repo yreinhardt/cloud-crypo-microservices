@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using Microservice.Coin.Models;
 using Newtonsoft.Json;
@@ -97,10 +96,11 @@ app.MapGet("/coin/currentprice/{coin}", async (string coin, HttpClient http) =>
     var json = await res.Content.ReadAsStringAsync();
     var responseObject = JsonConvert.DeserializeObject<CurrentCoin>(json);
 
+    //return Results.Ok(responseObject);
     return Results.Ok(responseObject);
 
-
 });
+
 
 app.Run();
 
