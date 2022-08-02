@@ -7,7 +7,7 @@ public class ReportDbContext : DbContext
 {
     public ReportDbContext() { }
     public ReportDbContext(DbContextOptions opts) : base(opts) { }
-    public DbSet<Report> Report { get; set; }
+    public DbSet<PortfolioReport> Report { get; set; }
 
     // override default behavior to snakecase table names
     protected override void OnModelCreating(ModelBuilder modelBuilder)

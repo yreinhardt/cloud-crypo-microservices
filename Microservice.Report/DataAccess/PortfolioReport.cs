@@ -1,6 +1,6 @@
 ﻿namespace Microservice.Report.DataAccess;
 
-public class Report
+public class PortfolioReport
 {
     public Guid ReportId { get; set; }
     public DateTime CreatedOn { get; set; }
