@@ -912,10 +912,10 @@ public class MarketData
     public PriceChangePercentage1yInCurrency price_change_percentage_1y_in_currency { get; set; }
     public MarketCapChange24hInCurrency market_cap_change_24h_in_currency { get; set; }
     public MarketCapChangePercentage24hInCurrency market_cap_change_percentage_24h_in_currency { get; set; }
-    public double total_supply { get; set; }
-    public double max_supply { get; set; }
-    public double circulating_supply { get; set; }
-    public DateTime last_updated { get; set; }
+    public double? total_supply { get; set; }
+    public double? max_supply { get; set; }
+    public double? circulating_supply { get; set; }
+    public DateTime? last_updated { get; set; }
 }
 
 public class Platforms
