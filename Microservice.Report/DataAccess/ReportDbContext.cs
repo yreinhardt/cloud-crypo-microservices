@@ -18,6 +18,6 @@ public class ReportDbContext : DbContext
 
     private static void SnakeCaseIdentitTableNames(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Report>(b => { b.ToTable("report"); });
+        modelBuilder.Entity<PortfolioReport>(b => { b.ToTable("report"); });
     }
 }

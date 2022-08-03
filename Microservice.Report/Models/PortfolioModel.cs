@@ -2,11 +2,10 @@
 
 public class PortfolioModel
 {
-    public Guid PortfolioId { get; set; }
-    public Guid UserId { get; set; }
-    // contains name, price, count
-    public List<string> AssetList { get; set; }
-
-
+        public string portfolioId { get; set; }
+        public string portfolioName { get; set; }
+        public DateTime createdOn { get; set; }
+        public string userId { get; set; }
+        public List<string> assets { get; set; }
 }
 

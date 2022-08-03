@@ -1,4 +1,6 @@
-﻿using Microservice.Report.Config;
+﻿using Newtonsoft.Json;
+
+using Microservice.Report.Config;
 using Microservice.Report.DataAccess;
 using Microservice.Report.Models;
 using Microsoft.Extensions.Options;
@@ -28,13 +30,26 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 
     }
 
-    // buildreport from interface
-    public async Task<PortfolioReport> BuildReport()
+
+    // buildreport based on user and portfolio
+    public async Task<PortfolioReport> BuildReport(string portfolioName, Guid userId)
     {
         var httpClient = _http.CreateClient();
-        var coinData = await FetchCoinData(httpClient);
-        var PortfolioData = await FetchPortfolioData(httpClient);
 
+        var portfolioData = await FetchPortfolioData(httpClient, portfolioName, userId);
+
+        // get coinData based on portfolioData (multiple requests)
+        // var coinData = await FetchCoinData(httpClient);
+
+
+        var report = new PortfolioReport
+        {
+
+            CreatedOn = DateTime.UtcNow,
+
+        };
+
+        return report;
     }
 
     /*
@@ -43,16 +58,48 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
      */
 
     // fetch data from portfolio service
-    private async Task<List<PortfolioModel>> FetchPortfolioData(HttpClient httpClient)
+    private async Task<List<PortfolioModel>> FetchPortfolioData(HttpClient httpClient, string portfolioName, Guid userId)
     {
-        throw new NotImplementedException();
+        // build endpoint
+        var endpoint = BuildPortfolioEndpoint(portfolioName, userId);
+
+        // portfolio records based on constructed endpoint
+        var portfolioRecords = await httpClient.GetAsync(endpoint);
+
+        var portfolioData = await portfolioRecords.Content.ReadFromJsonAsync<List<PortfolioModel>>();
+
+        /*
+        Console.WriteLine($"Date: {portfolioData?.userId}");
+        Console.WriteLine($"TemperatureCelsius: {weatherForecast?.portfolioID}");
+        Console.WriteLine($"Summary: {weatherForecast?.portfolioName}");
+        */
+
+        // TODO actuall empty return
+
+        return portfolioData ?? new List<PortfolioModel>();
+
+    }
+
+    // construct portfolio endpoint getPortfolio based on ReportDataConfig
+    private string BuildPortfolioEndpoint(string portfolioName, Guid userId)
+    {
+        var folioServiceProtocol = _reportDataConfig.PortfolioDataProtocol;
+        var folioServiceHost = _reportDataConfig.PortfolioDataHost;
+        var folioServicePort = _reportDataConfig.PortfolioDataPort;
+
+        // return endpoint
+        return $"{folioServiceProtocol}://{folioServiceHost}:{folioServicePort}/portfolio/getPortfolio/{portfolioName}/{userId}";
+
     }
 
     // fetch data from coin service
     private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient)
     {
+        // TODO parallel requests
         throw new NotImplementedException();
     }
+
+
 }
 
 
