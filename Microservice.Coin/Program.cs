@@ -14,6 +14,13 @@ builder.Services
 
 
 var app = builder.Build();
+app.MapGet("/coin/testlocal", async () =>
+{
+    
+    return Results.Ok("test");
+});
+
+
 
 // passing HttpClient object as input parameter to delegate handler
 app.MapGet("/coin/healthcheck", async (HttpClient http) =>
