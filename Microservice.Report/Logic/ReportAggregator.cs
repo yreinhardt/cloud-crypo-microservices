@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-
+using System.Linq;
 using Microservice.Report.Config;
 using Microservice.Report.DataAccess;
 using Microservice.Report.Models;
@@ -38,14 +38,45 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 
         var portfolioData = await FetchPortfolioData(httpClient, portfolioName, userId);
 
+        // TODO add FetchCoinDaata 
         // get coinData based on portfolioData (multiple requests)
-        // var coinData = await FetchCoinData(httpClient);
+        //var coinData = await FetchCoinData(httpClient, assets);
 
 
-        var report = new PortfolioReport
+
+        // convert string ids to guid
+        Guid portfolioId = new Guid(portfolioData[0].portfolioId);
+        Guid userSpecificId = new Guid(portfolioData[0].userId);
+
+        // divide by 3 because list contains of name, price, assetcount
+        int assetCount = portfolioData[0].assets.Count / 3;
+
+        DateTime actualTime = DateTime.UtcNow;
+        string folioName = portfolioData[0].portfolioName;
+
+        List<string> assetList = new List<string>();
+
+        // extract every third element (asset names)
+        for (int i = 0; i < portfolioData[0].assets.Count; i += 3)
         {
+            assetList.Add(portfolioData[0].assets[i]);
+        }
 
-            CreatedOn = DateTime.UtcNow,
+            // Create report object
+            var report = new PortfolioReport
+        {
+            PortfolioId = portfolioId,
+            UserId = userSpecificId,
+            CreatedOn = actualTime,
+            Portfolioname = folioName,
+            WinLossRatioAbsolute = 2,
+            WinLossRatioPercentage = 1,
+            AssetCount = assetCount,
+            HighestPerformanceAsset = "",
+            LowestPerformanceAsset = "",
+            AssetList = assetList,
+            AssetPerformanceAbsolute = null,
+            AssetPerformancePercentage = null
 
         };
 
@@ -68,14 +99,6 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 
         var portfolioData = await portfolioRecords.Content.ReadFromJsonAsync<List<PortfolioModel>>();
 
-        /*
-        Console.WriteLine($"Date: {portfolioData?.userId}");
-        Console.WriteLine($"TemperatureCelsius: {weatherForecast?.portfolioID}");
-        Console.WriteLine($"Summary: {weatherForecast?.portfolioName}");
-        */
-
-        // TODO actuall empty return
-
         return portfolioData ?? new List<PortfolioModel>();
 
     }
@@ -93,13 +116,52 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
     }
 
     // fetch data from coin service
-    private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient)
+    private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient, List<string> assets)
     {
-        // TODO parallel requests
-        throw new NotImplementedException();
+        // create list of endpoints, each element contains endpoint url for specific coin
+        List<string> endpoints = new List<string>();
+        for(int i = 0; i< assets.Count; i++)
+        {
+            // build coin specific endpoint and add to list
+            endpoints.Add(BuildCoinEndpoint(assets[i]));
+        }
+
+        // start requests for every url
+        var requests = endpoints.Select
+            (
+                url => httpClient.GetAsync(url)
+            ).ToList();
+
+        // await every task to finish
+        await Task.WhenAll(requests);
+
+        // get all responses
+        var responses = requests.Select
+            (
+                task => task.Result
+            );
+
+        // extract content
+        foreach (var r in responses)
+        {
+            // TODO add correct deserialization, adjust model
+            var s = await r.Content.ReadAsStringAsync();
+            Console.WriteLine(s);
+        }
+
     }
 
+    // build endpont to get current price of coin
+    private string BuildCoinEndpoint(string coin)
+    {
+        var coinServiceProtocol = _reportDataConfig.PortfolioDataProtocol;
+        var coinServiceHost = _reportDataConfig.PortfolioDataHost;
+        var coinServicePort = _reportDataConfig.PortfolioDataPort;
 
+        // return endpoint
+        return $"{coinServiceProtocol}://{coinServiceHost}:{coinServicePort}/coin/currentprice/{coin}";
+
+    }
 }
 
 
