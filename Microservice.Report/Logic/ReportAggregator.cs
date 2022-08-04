@@ -38,12 +38,6 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 
         var portfolioData = await FetchPortfolioData(httpClient, portfolioName, userId);
 
-        // TODO add FetchCoinDaata 
-        // get coinData based on portfolioData (multiple requests)
-        //var coinData = await FetchCoinData(httpClient, assets);
-
-
-
         // convert string ids to guid
         Guid portfolioId = new Guid(portfolioData[0].portfolioId);
         Guid userSpecificId = new Guid(portfolioData[0].userId);
@@ -62,8 +56,14 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
             assetList.Add(portfolioData[0].assets[i]);
         }
 
-            // Create report object
-            var report = new PortfolioReport
+        // build coin endpoint
+        string coinDataEndpoint = BuildCoinEndpoint(assetList);
+
+        // TODO add correct multiple client istances for different endpoint
+        var coinData = await FetchCoinData(httpClient, coinDataEndpoint);
+
+        // Create report object
+        var report = new PortfolioReport
         {
             PortfolioId = portfolioId,
             UserId = userSpecificId,
@@ -81,6 +81,20 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
         };
 
         return report;
+    }
+
+    private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient, string endpoint)
+    {
+
+        var coinRecords = await httpClient.GetAsync(endpoint);
+        var coinData = await coinRecords.Content.ReadFromJsonAsync<List<CoinModel>>();
+
+        Console.WriteLine(coinData);
+        Console.WriteLine(coinData[0]);
+
+
+        return null;
+
     }
 
     /*
@@ -115,7 +129,8 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 
     }
 
-    // fetch data from coin service
+    /*
+     * // fetch data from coin service
     private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient, List<string> assets)
     {
         // create list of endpoints, each element contains endpoint url for specific coin
@@ -149,17 +164,23 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
             Console.WriteLine(s);
         }
 
-    }
+    }*/
 
-    // build endpont to get current price of coin
-    private string BuildCoinEndpoint(string coin)
+    // build endpont to get current price of coins
+    private string BuildCoinEndpoint(List<string> coinList)
     {
-        var coinServiceProtocol = _reportDataConfig.PortfolioDataProtocol;
-        var coinServiceHost = _reportDataConfig.PortfolioDataHost;
-        var coinServicePort = _reportDataConfig.PortfolioDataPort;
+        // read specific config values from appsettings.json
+        var coinServiceProtocol = _reportDataConfig.CoinDataProtocol;
+        var coinServiceHost = _reportDataConfig.CoinDataHost;
 
-        // return endpoint
-        return $"{coinServiceProtocol}://{coinServiceHost}:{coinServicePort}/coin/currentprice/{coin}";
+        // create needed string ids with correct seperator (e.g.bitcoin%2Cethereum)
+        // compare docs: https://www.coingecko.com/en/api/documentation
+        string coinUrlInsertion = String.Join("%2", coinList);
+
+        // concatenate final endpoint string
+        string endpoint = $"{coinServiceProtocol}://{coinServiceHost}/simple/price?ids=" + coinUrlInsertion + "&vs_currencies=usd%2Ceur";
+
+        return endpoint;
 
     }
 }

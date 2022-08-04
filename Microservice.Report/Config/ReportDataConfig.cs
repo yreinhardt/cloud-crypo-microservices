@@ -10,7 +10,6 @@ public class ReportDataConfig
 
     public string CoinDataProtocol { get; set; } = string.Empty;
     public string CoinDataHost { get; set; } = string.Empty;
-    public string CoinDataPort { get; set; } = string.Empty;
 
 }
 
