@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System.Linq;
-using Microservice.Report.Config;
 using Microservice.Report.DataAccess;
 using Microservice.Report.Models;
 using Microsoft.Extensions.Options;
@@ -12,31 +11,27 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 {
     private readonly IHttpClientFactory _http; // create instances of http clients to make requests
     private readonly ILogger<PortfolioReportAggregator> _logger;
-    private readonly ReportDataConfig _reportDataConfig; // configuration
     private readonly ReportDbContext _db; // interact with own postgres db
 
     // constructor
     public PortfolioReportAggregator(
         IHttpClientFactory http,
         ILogger<PortfolioReportAggregator> logger,
-        IOptions<ReportDataConfig> reportDataConfig, // options pattern to map config and inject into class
         ReportDbContext db
     )
     {
         _http = http;
         _logger = logger;
-        _reportDataConfig = reportDataConfig.Value;
         _db = db;
 
     }
 
 
-    // buildreport based on user and portfolio
     public async Task<PortfolioReport> BuildReport(string portfolioName, Guid userId)
     {
-        var httpClient = _http.CreateClient();
+        var portfolioClient = _http.CreateClient("portfolioDb");
 
-        var portfolioData = await FetchPortfolioData(httpClient, portfolioName, userId);
+        var portfolioData = await FetchPortfolioData(portfolioClient, portfolioName, userId);
 
         // convert string ids to guid
         Guid portfolioId = new Guid(portfolioData[0].portfolioId);
@@ -56,11 +51,10 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
             assetList.Add(portfolioData[0].assets[i]);
         }
 
-        // build coin endpoint
-        string coinDataEndpoint = BuildCoinEndpoint(assetList);
+        var coinClient = _http.CreateClient("coin");
 
-        // TODO add correct multiple client istances for different endpoint
-        var coinData = await FetchCoinData(httpClient, coinDataEndpoint);
+        var coinData = await FetchCoinData(coinClient);
+
 
         // Create report object
         var report = new PortfolioReport
@@ -83,25 +77,6 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
         return report;
     }
 
-    private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient, string endpoint)
-    {
-
-        var coinRecords = await httpClient.GetAsync(endpoint);
-        var coinData = await coinRecords.Content.ReadFromJsonAsync<List<CoinModel>>();
-
-        Console.WriteLine(coinData);
-        Console.WriteLine(coinData[0]);
-
-
-        return null;
-
-    }
-
-    /*
-     * To not referencing Portfolio or Coin models directly new models are needed
-     * No dependency between each service (following microservice architecture)
-     */
-
     // fetch data from portfolio service
     private async Task<List<PortfolioModel>> FetchPortfolioData(HttpClient httpClient, string portfolioName, Guid userId)
     {
@@ -117,71 +92,36 @@ public class PortfolioReportAggregator : IPortfolioReportAggregator
 
     }
 
-    // construct portfolio endpoint getPortfolio based on ReportDataConfig
+
+    // construct portfolio endpoint 
     private string BuildPortfolioEndpoint(string portfolioName, Guid userId)
     {
-        var folioServiceProtocol = _reportDataConfig.PortfolioDataProtocol;
-        var folioServiceHost = _reportDataConfig.PortfolioDataHost;
-        var folioServicePort = _reportDataConfig.PortfolioDataPort;
-
-        // return endpoint
-        return $"{folioServiceProtocol}://{folioServiceHost}:{folioServicePort}/portfolio/getPortfolio/{portfolioName}/{userId}";
+        return $"getPortfolio/{portfolioName}/{userId}";
 
     }
 
-    /*
-     * // fetch data from coin service
-    private async Task<List<CoinModel>> FetchCoinData(HttpClient httpClient, List<string> assets)
+
+    private async Task<List<CoinModel>> FetchCoinData(HttpClient http)
     {
-        // create list of endpoints, each element contains endpoint url for specific coin
-        List<string> endpoints = new List<string>();
-        for(int i = 0; i< assets.Count; i++)
-        {
-            // build coin specific endpoint and add to list
-            endpoints.Add(BuildCoinEndpoint(assets[i]));
-        }
+        // build coin endpoint
+        //string coinDataEndpoint = BuildCoinEndpoint(assets);
 
-        // start requests for every url
-        var requests = endpoints.Select
-            (
-                url => httpClient.GetAsync(url)
-            ).ToList();
+        // TODO correct deserialization
+        var coinRecords = await http.GetAsync("simple/price?ids=bitcoin%2Cethereum%2Ccardano&vs_currencies=usd%2Ceur");
+        //var json = await coinRecords.Content.ReadAsStringAsync();
+        //var res = JsonConvert.DeserializeObject<CoinModel>(json);
+        //var coinData = JsonConvert.DeserializeObject<CoinModel>(json);
+        var coinData = await coinRecords.Content.ReadFromJsonAsync<CoinModel>();
 
-        // await every task to finish
-        await Task.WhenAll(requests);
+        return null;
 
-        // get all responses
-        var responses = requests.Select
-            (
-                task => task.Result
-            );
+    }
 
-        // extract content
-        foreach (var r in responses)
-        {
-            // TODO add correct deserialization, adjust model
-            var s = await r.Content.ReadAsStringAsync();
-            Console.WriteLine(s);
-        }
 
-    }*/
-
-    // build endpont to get current price of coins
-    private string BuildCoinEndpoint(List<string> coinList)
+    // build coin endpoint based on parameter assets
+    private string BuildCoinEndpoint(List<string> assets)
     {
-        // read specific config values from appsettings.json
-        var coinServiceProtocol = _reportDataConfig.CoinDataProtocol;
-        var coinServiceHost = _reportDataConfig.CoinDataHost;
-
-        // create needed string ids with correct seperator (e.g.bitcoin%2Cethereum)
-        // compare docs: https://www.coingecko.com/en/api/documentation
-        string coinUrlInsertion = String.Join("%2", coinList);
-
-        // concatenate final endpoint string
-        string endpoint = $"{coinServiceProtocol}://{coinServiceHost}/simple/price?ids=" + coinUrlInsertion + "&vs_currencies=usd%2Ceur";
-
-        return endpoint;
-
+        throw new NotImplementedException();
     }
 }
 

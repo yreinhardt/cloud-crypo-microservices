@@ -26,13 +26,11 @@
     <None Remove="DataAccess\" />
     <None Remove="Models\" />
     <None Remove="Logic\" />
-    <None Remove="Config\" />
     <None Remove="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DataAccess\" />
     <Folder Include="Models\" />
     <Folder Include="Logic\" />
-    <Folder Include="Config\" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,3 @@
-using Microservice.Report.Config;
 using Microservice.Report.DataAccess;
 using Microservice.Report.Logic;
 using Microsoft.EntityFrameworkCore;
@@ -6,12 +5,17 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // allow injection of httpclient
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("portfolioDb", hc =>
+{
+    hc.BaseAddress = new Uri("http://localhost:4000/portfolio/");
+});
+builder.Services.AddHttpClient("coin", hc =>
+{
+    hc.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
+});
 // lives for lifetime of method call
 builder.Services.AddTransient<IPortfolioReportAggregator, PortfolioReportAggregator>(); 
 builder.Services.AddOptions();
-builder.Services.Configure<ReportDataConfig>(builder.Configuration.GetSection("ReportDataConfig"));
-
 builder.Services.AddDbContext<ReportDbContext>(
     opts =>
     {
